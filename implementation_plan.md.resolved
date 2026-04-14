@@ -1,0 +1,32 @@
+# Redesign HostelOLX Frontend Landing Page
+
+This plan outlines the steps to redesign the `frontend` project's landing page (`page.tsx`) by incorporating the requested features, layouts, and cleaner professional aesthetic from `frontend-2`, while strictly maintaining the existing `frontend` theme.
+
+## Goal Description
+
+The goal is to merge the best parts of the `frontend-2` UI (cleaner layout, categories, product cards, structured footer, etc.) into the `frontend` Next.js application, ensuring it looks less "vibe-coded" and more professional. The theme (currently green `#006E17` and red `#BB020C`) along with the overall brand identity will be preserved.
+
+## User Review Required
+
+> [!IMPORTANT]  
+> Please review this plan to ensure the chosen mapping of content from `frontend-2` aligns with your vision. Note that `frontend-2` did not have local image assets (it used Unsplash/Picsum URLs), so we will continue using placeholder URLs or the existing image logic. Is this okay?
+
+## Proposed Changes
+
+### 1. `frontend/src/app/page.tsx`
+
+We will rewrite the main landing page to integrate the layout from `frontend-2`:
+
+- **Hero Section:** Remove the "For BITS pilani" tag. Introduce the 8-category icon grid from `frontend-2`, translating its original blue aesthetic to the `frontend` green (`#006E17`) theme.
+- **Product Listings:** Adopt the styling of `ProductCard` from `frontend-2` (clean aspect-square image, bold clean typography, hover effects). We'll map the UI to consume the existing mock state data in `frontend`.
+- **Advantages / Trust Section:** Add the "Zero Strangers, No Phone Exposure, Campus-Only Logistics" and "4.9/5 Trust Score" sections from `frontend-2`. We will re-theme the blue backgrounds and gradients to our primary green.
+- **How It Works:** Replace the current 3-step section with the 4-step layout from `frontend-2` (Verify, Browse, Chat, Meet).
+- **Footer:** Replace the current footer with the multi-column professional footer from `frontend-2`.
+
+#### [MODIFY] `frontend/src/app/page.tsx`
+
+## Verification Plan
+
+1. Ensure the Next.js app compiles without errors.
+2. Verify visual consistency of the theme (no rogue blue Tailwind classes from `frontend-2`).
+3. Verify responsiveness and hover states on the newly integrated components.
