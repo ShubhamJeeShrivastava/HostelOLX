@@ -1,44 +1,57 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, MapPin, ShoppingCart, User, ChevronDown, Bookmark, ShieldCheck, HelpCircle, PhoneCall, Mail, Camera, Handshake } from 'lucide-react';
+import Link from 'next/link';
+import CampusDropdown from '@/components/CampusDropdown';
 
 export default function Home() {
-  const items = [
-    {
-      id: 1,
-      title: 'Single Bed Mattress',
-      condition: 'Used - Good',
-      price: 800,
-      originalPrice: 2500,
-      discount: '70% OFF',
-      image: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-      seller: 'Rahul (3rd Year)',
-      tag: 'Har Din Sasta!'
-    },
-    {
-      id: 2,
-      title: 'Hero Cycle',
-      condition: 'Like New',
-      price: 1500,
-      originalPrice: 3500,
-      discount: '40% OFF',
-      image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-      seller: 'Priya (4th Year)',
-      tag: 'Add'
-    },
-    {
-      id: 3,
-      title: 'Engineering Physics',
-      condition: 'New',
-      price: 250,
-      originalPrice: 500,
-      discount: '50% OFF',
-      image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-      seller: 'Amit (2nd Year)',
-      tag: 'Har Din Sasta!'
-    }
-  ];
+  const [items, setItems] = useState<{ id: number; title: string; condition: string; price: number; originalPrice: number; discount: string; image: string; seller: string; tag: string; }[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/items')
+      .then(res => res.json())
+      .then(data => setItems(data))
+      .catch(err => {
+        console.warn('Backend not detected, falling back to mock UI data.');
+        // Fallback to mock data if backend is not running
+        setItems([
+          {
+            id: 1,
+            title: 'Single Bed Mattress',
+            condition: 'Used - Good',
+            price: 800,
+            originalPrice: 2500,
+            discount: '70% OFF',
+            image: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
+            seller: 'Rahul (3rd Year)',
+            tag: 'Har Din Sasta!'
+          },
+          {
+            id: 2,
+            title: 'Hero Cycle',
+            condition: 'Like New',
+            price: 1500,
+            originalPrice: 3500,
+            discount: '40% OFF',
+            image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
+            seller: 'Priya (4th Year)',
+            tag: 'Add'
+          },
+          {
+            id: 3,
+            title: 'Engineering Physics',
+            condition: 'New',
+            price: 250,
+            originalPrice: 500,
+            discount: '50% OFF',
+            image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
+            seller: 'Amit (2nd Year)',
+            tag: 'Har Din Sasta!'
+          }
+        ]);
+      });
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F9F9F9] font-sans text-[#1A1C1C]">
@@ -49,14 +62,8 @@ export default function Home() {
           <div className="flex items-center gap-6">
             <h1 className="text-2xl font-bold text-[#006E17] tracking-tight">HostelOLX</h1>
             
-            <div className="hidden md:flex items-center gap-2 bg-[#E8E8E8] px-3 py-1.5 rounded-xl cursor-pointer hover:bg-[#E2E2E2] transition-colors">
-              <MapPin size={18} className="text-[#006E17]" />
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase text-[#5f5e5e] leading-none">Your Campus</span>
-                <span className="text-sm font-semibold flex items-center gap-1">
-                  BITS Pilani <ChevronDown size={14} />
-                </span>
-              </div>
+            <div className="hidden md:block">
+              <CampusDropdown />
             </div>
           </div>
 
@@ -79,9 +86,9 @@ export default function Home() {
             <button className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform">
               Sell
             </button>
-            <button className="p-2 text-[#1A1C1C] hover:bg-[#EEEEEE] rounded-xl transition-colors">
-              <User size={22} />
-            </button>
+            <Link href="/login" className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
+              Login
+            </Link>
             <button className="p-2 text-[#1A1C1C] hover:bg-[#EEEEEE] rounded-xl transition-colors relative">
               <ShoppingCart size={22} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-[#BB020C] rounded-full"></span>
@@ -229,17 +236,17 @@ export default function Home() {
           <div>
             <h4 className="font-bold mb-4">Trust & Safety</h4>
             <ul className="space-y-3 text-sm text-[#5f5e5e]">
-              <li className="flex items-center gap-2 hover:text-[#1A1C1C] cursor-pointer"><ShieldCheck size={16} /> Verification Process</li>
-              <li className="flex items-center gap-2 hover:text-[#1A1C1C] cursor-pointer"><HelpCircle size={16} /> Buyer Protection</li>
-              <li className="flex items-center gap-2 hover:text-[#1A1C1C] cursor-pointer"><PhoneCall size={16} /> Contact Support</li>
+              <li><Link href="/trust-safety/verification-process" className="flex w-fit items-center gap-2 hover:text-[#1A1C1C] transition-colors"><ShieldCheck size={16} /> Verification Process</Link></li>
+              <li><Link href="/trust-safety/buyer-protection" className="flex w-fit items-center gap-2 hover:text-[#1A1C1C] transition-colors"><HelpCircle size={16} /> Buyer Protection</Link></li>
+              <li><Link href="/trust-safety/contact-support" className="flex w-fit items-center gap-2 hover:text-[#1A1C1C] transition-colors"><PhoneCall size={16} /> Contact Support</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-4">Legal</h4>
             <ul className="space-y-3 text-sm text-[#5f5e5e]">
-              <li className="hover:text-[#1A1C1C] cursor-pointer">Terms of Service</li>
-              <li className="hover:text-[#1A1C1C] cursor-pointer">Privacy Policy</li>
-              <li className="hover:text-[#1A1C1C] cursor-pointer">Campus Guidelines</li>
+              <li><Link href="/legal/terms-of-service" className="hover:text-[#1A1C1C] transition-colors inline-block w-fit">Terms of Service</Link></li>
+              <li><Link href="/legal/privacy-policy" className="hover:text-[#1A1C1C] transition-colors inline-block w-fit">Privacy Policy</Link></li>
+              <li><Link href="/legal/campus-guidelines" className="hover:text-[#1A1C1C] transition-colors inline-block w-fit">Campus Guidelines</Link></li>
             </ul>
           </div>
         </div>
