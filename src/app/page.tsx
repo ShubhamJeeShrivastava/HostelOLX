@@ -11,12 +11,36 @@ import Link from 'next/link';
 import CampusDropdown from '@/components/CampusDropdown';
 
 const CATEGORIES = [
-  'Books & Notes', 'Electronics', 'Furniture & Appliances', 'Cycles & Transport',
-  'Clothing & Gear', 'Stationery', 'Room Essentials', 'Other'
+  'All',
+  'Books & Notes',
+  'Electronics',
+  'Furniture & Appliances',
+  'Cycles & Transport',
+  'Clothing & Gear',
+  'Stationery',
+  'Room Essentials',
 ];
 
 export default function HomePage() {
-  const [items, setItems] = useState<{ id: string; title: string; condition: string; price: number; image: string; sellerHostel: string; postedAt: string; type: string; }[]>([]);
+  const [items, setItems] = useState<{ id: string; title: string; condition: string; price: number; image: string; sellerHostel: string; postedAt: string; type: string; category?: string; }[]>([]);
+  const [isCategoryDockCompact, setIsCategoryDockCompact] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<(typeof CATEGORIES)[number]>('All');
+
+  useEffect(() => {
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        setIsCategoryDockCompact(window.scrollY > 160);
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/items')
@@ -34,6 +58,7 @@ export default function HomePage() {
             sellerHostel: 'Hostel A',
             postedAt: '2 hours ago',
             type: 'Sell',
+            category: 'Books & Notes',
           },
           {
             id: '2',
@@ -44,6 +69,7 @@ export default function HomePage() {
             sellerHostel: 'Hostel B',
             postedAt: '5 hours ago',
             type: 'Sell',
+            category: 'Electronics',
           },
           {
             id: '3',
@@ -54,6 +80,7 @@ export default function HomePage() {
             sellerHostel: 'Hostel A',
             postedAt: '1 day ago',
             type: 'Sell',
+            category: 'Room Essentials',
           },
           {
             id: '4',
@@ -64,6 +91,7 @@ export default function HomePage() {
             sellerHostel: 'Hostel C',
             postedAt: '3 hours ago',
             type: 'Rent',
+            category: 'Cycles & Transport',
           },
           {
             id: '5',
@@ -74,6 +102,7 @@ export default function HomePage() {
             sellerHostel: 'Hostel B',
             postedAt: '10 mins ago',
             type: 'Sell',
+            category: 'Electronics',
           },
           {
             id: '6',
@@ -84,6 +113,7 @@ export default function HomePage() {
             sellerHostel: 'Hostel A',
             postedAt: '6 hours ago',
             type: 'Sell',
+            category: 'Clothing & Gear',
           },
           {
             id: '7',
@@ -94,6 +124,7 @@ export default function HomePage() {
             sellerHostel: 'Hostel D',
             postedAt: '12 hours ago',
             type: 'Sell',
+            category: 'Clothing & Gear',
           },
           {
             id: '8',
@@ -104,21 +135,38 @@ export default function HomePage() {
             sellerHostel: 'Hostel B',
             postedAt: '1 hour ago',
             type: 'Lend',
+            category: 'Books & Notes',
           },
         ]);
       });
   }, []);
 
-  const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-    'Books & Notes': <Book className="w-6 h-6" />,
-    'Electronics': <Laptop className="w-6 h-6" />,
-    'Furniture & Appliances': <Sofa className="w-6 h-6" />,
-    'Cycles & Transport': <Bike className="w-6 h-6" />,
-    'Clothing & Gear': <Shirt className="w-6 h-6" />,
-    'Stationery': <PenTool className="w-6 h-6" />,
-    'Room Essentials': <Home className="w-6 h-6" />,
-    'Other': <MoreHorizontal className="w-6 h-6" />,
+  const CATEGORY_ICON_COMPONENTS: Record<string, React.ElementType> = {
+    'All': Sparkles,
+    'Books & Notes': Book,
+    'Electronics': Laptop,
+    'Furniture & Appliances': Sofa,
+    'Cycles & Transport': Bike,
+    'Clothing & Gear': Shirt,
+    'Stationery': PenTool,
+    'Room Essentials': Home,
   };
+
+  const CATEGORY_SHORT_LABEL: Record<(typeof CATEGORIES)[number], string> = {
+    All: 'All',
+    'Books & Notes': 'Books',
+    Electronics: 'Electro',
+    'Furniture & Appliances': 'Furni',
+    'Cycles & Transport': 'Cycles',
+    'Clothing & Gear': 'Cloth',
+    Stationery: 'Statn',
+    'Room Essentials': 'Room',
+  };
+
+  const visibleItems =
+    selectedCategory === 'All'
+      ? items
+      : items.filter((p) => (p.category ? p.category === selectedCategory : true));
 
   const STEPS = [
     {
@@ -211,6 +259,54 @@ export default function HomePage() {
             </button>
           ))}
         </div>
+
+        {/* Compact Categories (Zepto-like) - appears only after scroll */}
+        <div className="max-w-7xl mx-auto px-4">
+          <div
+            className={[
+              'mt-2 overflow-x-auto no-scrollbar',
+              'transition-[max-height,opacity,transform] duration-300 ease-out will-change-[transform]',
+              isCategoryDockCompact ? 'max-h-20 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1 pointer-events-none',
+            ].join(' ')}
+            aria-label="Categories"
+            aria-hidden={!isCategoryDockCompact}
+          >
+            <div className="flex items-center gap-2 pb-2">
+              {CATEGORIES.map((category) => {
+                const Icon = CATEGORY_ICON_COMPONENTS[category] ?? MoreHorizontal;
+                return (
+                  <button
+                    key={category}
+                    title={category}
+                    aria-label={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={[
+                      'group shrink-0 rounded-2xl border shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2',
+                      'px-3 h-10',
+                      selectedCategory === category
+                        ? 'bg-[#006E17]/10 border-[#006E17]/25 text-[#006E17]'
+                        : 'bg-white border-[#EEEEEE] text-[#1A1C1C] hover:shadow-md hover:border-[#006E17]/20',
+                    ].join(' ')}
+                  >
+                    <div
+                      className={[
+                        'w-7 h-7 flex items-center justify-center rounded-xl transition-colors',
+                        selectedCategory === category
+                          ? 'bg-[#006E17] text-white'
+                          : 'bg-[#006E17]/5 text-[#006E17] group-hover:bg-[#006E17] group-hover:text-white',
+                      ].join(' ')}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-extrabold tracking-tight">
+                      {CATEGORY_SHORT_LABEL[category]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </header>
 
       <main>
@@ -229,20 +325,32 @@ export default function HomePage() {
               Just your campus community.
             </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 sm:gap-6">
-              {CATEGORIES.map((category) => (
-                <button
-                  key={category}
-                  className="group flex flex-col items-center gap-3 p-4 bg-white border border-[#EEEEEE] rounded-2xl shadow-sm hover:shadow-md hover:border-[#006E17]/20 transition-all active:scale-95"
-                >
-                  <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#006E17]/5 text-[#006E17] group-hover:bg-[#006E17] group-hover:text-white transition-colors">
-                    {CATEGORY_ICONS[category]}
-                  </div>
-                  <span className="text-xs font-semibold text-[#5f5e5e] group-hover:text-[#006E17] transition-colors">
-                    {category}
-                  </span>
-                </button>
-              ))}
+            {/* Big Categories Grid (original) - collapses away when dock appears */}
+            <div
+              className={[
+                'transition-[max-height,opacity,transform] duration-300 ease-out will-change-[transform]',
+                isCategoryDockCompact ? 'max-h-0 opacity-0 scale-[0.98] pointer-events-none' : 'max-h-[520px] opacity-100 scale-100',
+              ].join(' ')}
+              aria-hidden={isCategoryDockCompact}
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 sm:gap-6">
+                {CATEGORIES.map((category) => {
+                  const Icon = CATEGORY_ICON_COMPONENTS[category] ?? MoreHorizontal;
+                  return (
+                    <button
+                      key={category}
+                      className="group flex flex-col items-center gap-3 p-4 bg-white border border-[#EEEEEE] rounded-2xl shadow-sm hover:shadow-md hover:border-[#006E17]/20 transition-all active:scale-95"
+                    >
+                      <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#006E17]/5 text-[#006E17] group-hover:bg-[#006E17] group-hover:text-white transition-colors">
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <span className="text-xs font-semibold text-[#5f5e5e] group-hover:text-[#006E17] transition-colors">
+                        {category}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </section>
@@ -263,7 +371,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {items.map((product) => (
+            {visibleItems.map((product) => (
               <div
                 key={product.id}
                 className="group bg-white border border-[#EEEEEE] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
