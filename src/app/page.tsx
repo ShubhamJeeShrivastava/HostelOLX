@@ -164,7 +164,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 bg-[#F9F9F9]/80 backdrop-blur-[20px] pb-3 border-b border-[#E2E2E2]">
         <div className="max-w-7xl mx-auto px-4 pt-4 flex items-center justify-between gap-6">
           <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold text-[#006E17] tracking-tight">HostelOLX</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Hostel<span className="text-[#fc5e03]">OLX</span></h1>
             <div className="hidden md:block">
               <CampusDropdown />
             </div>
@@ -418,7 +418,7 @@ export default function HomePage() {
                   <ShoppingBag className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold tracking-tight text-[#1A1C1C]">
-                  Hostel<span className="text-[#006E17]">OLX</span>
+                  Hostel<span className="text-[#fc5e03]">OLX</span>
                 </span>
               </div>
               <p className="text-[#5f5e5e] text-sm leading-relaxed mb-6">
