@@ -54,7 +54,7 @@ app.get('/api/items', async (req, res) => {
     
     const params = [];
     if (search) {
-      query += ` WHERE i.title ILIKE $1 OR i.category ILIKE $1`;
+      query += ` WHERE (i.title ILIKE $1 OR i.category ILIKE $1 OR i.type ILIKE $1 OR i.condition ILIKE $1)`;
       params.push(`%${search}%`);
     }
     

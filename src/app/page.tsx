@@ -8,6 +8,7 @@ import {
   ShoppingBag, Clock
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import CampusDropdown from '@/components/CampusDropdown';
 
 const CATEGORIES = [
@@ -26,8 +27,8 @@ export default function HomePage() {
   const [isCategoryDockCompact, setIsCategoryDockCompact] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<(typeof CATEGORIES)[number]>('All');
   
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [submittedQuery, setSubmittedQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<typeof items>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -49,11 +50,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    const url = submittedQuery
-      ? `http://localhost:5000/api/items?search=${encodeURIComponent(submittedQuery)}`
-      : 'http://localhost:5000/api/items';
-
-    fetch(url)
+    fetch('http://localhost:5000/api/items')
       .then(res => res.json())
       .then(data => setItems(data))
       .catch(err => {
@@ -149,7 +146,7 @@ export default function HomePage() {
           },
         ]);
       });
-  }, [submittedQuery]);
+  }, []);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -266,7 +263,7 @@ export default function HomePage() {
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    setSubmittedQuery(searchQuery);
+                    router.push('/items?search=' + encodeURIComponent(searchQuery));
                     setShowSuggestions(false);
                   }
                 }}
@@ -287,7 +284,7 @@ export default function HomePage() {
                           className="px-4 py-3 hover:bg-[#F9F9F9] cursor-pointer flex items-center gap-3 transition-colors border-b border-[#F0F0F0] last:border-b-0"
                           onClick={() => {
                             setSearchQuery(result.title);
-                            setSubmittedQuery(result.title);
+                            router.push('/items?search=' + encodeURIComponent(result.title));
                             setShowSuggestions(false);
                           }}
                         >
@@ -303,7 +300,7 @@ export default function HomePage() {
                       <div 
                         className="px-4 py-2 bg-[#F9F9F9] text-center text-sm font-bold text-[#006E17] hover:bg-[#EEEEEE] cursor-pointer transition-colors"
                         onClick={() => {
-                          setSubmittedQuery(searchQuery);
+                          router.push('/items?search=' + encodeURIComponent(searchQuery));
                           setShowSuggestions(false);
                         }}
                       >
@@ -454,9 +451,9 @@ export default function HomePage() {
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1C1C]">Featured Listings</h2>
             </div>
-            <button className="flex items-center gap-2 text-[#006E17] font-bold hover:gap-3 transition-all">
+            <Link href="/items" className="flex items-center gap-2 text-[#006E17] font-bold hover:gap-3 transition-all">
               View all listings <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
@@ -518,9 +515,9 @@ export default function HomePage() {
           </div>
           
           <div className="mt-16 text-center">
-            <button className="px-8 py-3.5 bg-white border border-[#EEEEEE] hover:border-[#006E17] hover:text-[#006E17] text-[#1A1C1C] font-bold rounded-2xl transition-all shadow-sm active:scale-95 text-sm">
-              Load More Items
-            </button>
+            <Link href="/items" className="inline-block px-8 py-3.5 bg-white border border-[#EEEEEE] hover:border-[#006E17] hover:text-[#006E17] text-[#1A1C1C] font-bold rounded-2xl transition-all shadow-sm active:scale-95 text-sm">
+              View All Listings
+            </Link>
           </div>
         </section>
 
