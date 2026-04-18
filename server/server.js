@@ -13,6 +13,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'HostelOLX Backend is running!' });
 });
 
+app.get('/api/colleges', async (req, res) => {
+  try {
+    const query = `SELECT id, domain, name, city FROM colleges ORDER BY name ASC;`;
+    const { rows } = await db.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching colleges', err);
+    res.status(500).json({ error: 'Internal server error fetching colleges' });
+  }
+});
+
 function timeAgo(date) {
   const seconds = Math.floor((new Date() - date) / 1000);
   let interval = seconds / 31536000;
@@ -30,16 +41,26 @@ function timeAgo(date) {
 
 app.get('/api/items', async (req, res) => {
   try {
-    const query = `
+    const { search } = req.query;
+    
+    let query = `
       SELECT 
         i.id, i.title, i.price, i.condition, i.image, i.category, i.type, i.created_at,
         h.name as hostel_name
       FROM items i
       JOIN users u ON i.seller_id = u.id
       JOIN hostels h ON u.hostel_id = h.id
-      ORDER BY i.created_at DESC;
     `;
-    const { rows } = await db.query(query);
+    
+    const params = [];
+    if (search) {
+      query += ` WHERE i.title ILIKE $1 OR i.category ILIKE $1`;
+      params.push(`%${search}%`);
+    }
+    
+    query += ` ORDER BY i.created_at DESC;`;
+
+    const { rows } = await db.query(query, params);
     
     // Format the response to perfectly match the frontend requirement
     const formattedRows = rows.map(r => ({

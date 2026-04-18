@@ -82,18 +82,23 @@ const initDb = async () => {
     // Seed Data
     console.log('Seeding mock data...');
 
-    // 1. College
-    const collegeRes = await pool.query(`
-      INSERT INTO colleges (domain, name, city) 
-      VALUES ('iitb.ac.in', 'IIT Bombay', 'Mumbai') RETURNING id;
-    `);
-    const collegeId = collegeRes.rows[0].id;
+    // 1. Colleges
+    const insertCollegeQuery = `INSERT INTO colleges (domain, name, city) VALUES ($1, $2, $3) RETURNING id;`;
+    
+    const collegeIitbRes = await pool.query(insertCollegeQuery, ['iitb.ac.in', 'IIT Bombay', 'Mumbai']);
+    const collegeIitbId = collegeIitbRes.rows[0].id;
+    
+    const collegeIiitnRes = await pool.query(insertCollegeQuery, ['iiitn.ac.in', 'IIIT Nagpur', 'Nagpur']);
+    const collegeIiitnId = collegeIiitnRes.rows[0].id;
+
+    const collegeBitsRes = await pool.query(insertCollegeQuery, ['bits-pilani.ac.in', 'BITS Pilani', 'Pilani']);
+    const collegeBitsId = collegeBitsRes.rows[0].id;
 
     // 2. Hostels
-    const hostelARes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel A') RETURNING id;`, [collegeId]);
-    const hostelBRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel B') RETURNING id;`, [collegeId]);
-    const hostelCRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel C') RETURNING id;`, [collegeId]);
-    const hostelDRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel D') RETURNING id;`, [collegeId]);
+    const hostelARes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel A') RETURNING id;`, [collegeIitbId]);
+    const hostelBRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel B') RETURNING id;`, [collegeIitbId]);
+    const hostelCRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel C') RETURNING id;`, [collegeIitbId]);
+    const hostelDRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel D') RETURNING id;`, [collegeIitbId]);
 
     const haId = hostelARes.rows[0].id;
     const hbId = hostelBRes.rows[0].id;
@@ -101,10 +106,10 @@ const initDb = async () => {
     const hdId = hostelDRes.rows[0].id;
 
     // 3. Users
-    const user1Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Alice', 'alice@iitb.ac.in', '4th', $1, $2) RETURNING id;`, [collegeId, haId]);
-    const user2Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Bob', 'bob@iitb.ac.in', '2nd', $1, $2) RETURNING id;`, [collegeId, hbId]);
-    const user3Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Charlie', 'charlie@iitb.ac.in', '1st', $1, $2) RETURNING id;`, [collegeId, hcId]);
-    const user4Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Diana', 'diana@iitb.ac.in', '3rd', $1, $2) RETURNING id;`, [collegeId, hdId]);
+    const user1Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Alice', 'alice@iitb.ac.in', '4th', $1, $2) RETURNING id;`, [collegeIitbId, haId]);
+    const user2Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Bob', 'bob@iitb.ac.in', '2nd', $1, $2) RETURNING id;`, [collegeIitbId, hbId]);
+    const user3Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Charlie', 'charlie@iitb.ac.in', '1st', $1, $2) RETURNING id;`, [collegeIitbId, hcId]);
+    const user4Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Diana', 'diana@iitb.ac.in', '3rd', $1, $2) RETURNING id;`, [collegeIitbId, hdId]);
 
     const u1 = user1Res.rows[0].id; // Hostel A
     const u2 = user2Res.rows[0].id; // Hostel B

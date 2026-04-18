@@ -3,31 +3,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, ChevronDown, Search } from 'lucide-react';
 
-const COLLEGES = [
-  'IIIT Nagpur',
-  'BITS Pilani',
-  'BITS Goa',
-  'BITS Hyderabad',
-  'IIT Bombay',
-  'IIT Delhi',
-  'IIT Madras',
-  'IIT Kanpur',
-  'IIT Kharagpur',
-  'IIT Roorkee',
-  'IIT Guwahati',
-  'NIT Trichy',
-  'NIT Surathkal',
-  'NIT Warangal',
-  'NIT Rourkela',
-  'IIIT Hyderabad',
-  'IIIT Bangalore',
-  'IIIT Allahabad',
-];
+
 
 export default function CampusDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCampus, setSelectedCampus] = useState('IIIT Nagpur');
+  const [colleges, setColleges] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCampus, setSelectedCampus] = useState('Loading...');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -41,8 +23,25 @@ export default function CampusDropdown() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredColleges = COLLEGES.filter((college) =>
-    college.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    fetch('http://localhost:5000/api/colleges')
+      .then(res => res.json())
+      .then(data => {
+        setColleges(data);
+        if (data && data.length > 0) {
+          setSelectedCampus(data[0].name);
+        } else {
+          setSelectedCampus('No campuses available');
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch colleges', err);
+        setSelectedCampus('Campus Unavailable');
+      });
+  }, []);
+
+  const filteredColleges = colleges.filter((college) =>
+    college.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -82,17 +81,17 @@ export default function CampusDropdown() {
             {filteredColleges.length > 0 ? (
               filteredColleges.map((college) => (
                 <div
-                  key={college}
+                  key={college.id}
                   className={`px-4 py-2 text-sm cursor-pointer hover:bg-[#F3F3F3] transition-colors ${
-                    selectedCampus === college ? 'text-[#006E17] font-semibold bg-[#F9F9F9]' : 'text-[#3d4a3a]'
+                    selectedCampus === college.name ? 'text-[#006E17] font-semibold bg-[#F9F9F9]' : 'text-[#3d4a3a]'
                   }`}
                   onClick={() => {
-                    setSelectedCampus(college);
+                    setSelectedCampus(college.name);
                     setIsOpen(false);
                     setSearchQuery('');
                   }}
                 >
-                  {college}
+                  {college.name}
                 </div>
               ))
             ) : (

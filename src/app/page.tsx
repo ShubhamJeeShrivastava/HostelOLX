@@ -25,6 +25,12 @@ export default function HomePage() {
   const [items, setItems] = useState<{ id: string; title: string; condition: string; price: number; image: string; sellerHostel: string; postedAt: string; type: string; category?: string; }[]>([]);
   const [isCategoryDockCompact, setIsCategoryDockCompact] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<(typeof CATEGORIES)[number]>('All');
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [submittedQuery, setSubmittedQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<typeof items>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     let raf = 0;
@@ -43,7 +49,11 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/items')
+    const url = submittedQuery
+      ? `http://localhost:5000/api/items?search=${encodeURIComponent(submittedQuery)}`
+      : 'http://localhost:5000/api/items';
+
+    fetch(url)
       .then(res => res.json())
       .then(data => setItems(data))
       .catch(err => {
@@ -139,7 +149,29 @@ export default function HomePage() {
           },
         ]);
       });
-  }, []);
+  }, [submittedQuery]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(() => {
+      setIsSearching(true);
+      fetch(`http://localhost:5000/api/items?search=${encodeURIComponent(searchQuery)}`)
+        .then(res => res.json())
+        .then(data => {
+          setSearchResults(data.slice(0, 5));
+          setIsSearching(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setIsSearching(false);
+        });
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   const CATEGORY_ICON_COMPONENTS: Record<string, React.ElementType> = {
     'All': Sparkles,
@@ -220,14 +252,71 @@ export default function HomePage() {
 
           <div className="flex-1 max-w-2xl hidden md:block">
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                 <Search size={18} className="text-[#5f5e5e]" />
               </div>
               <input
                 type="text"
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#BCCBB5]/40 rounded-xl focus:outline-none focus:border-[#006E17] transition-colors text-sm shadow-[0_1px_4px_rgba(26,28,28,0.02)] placeholder:text-[#5f5e5e]"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setSubmittedQuery(searchQuery);
+                    setShowSuggestions(false);
+                  }
+                }}
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#BCCBB5]/40 rounded-xl focus:outline-none focus:border-[#006E17] transition-colors text-sm shadow-[0_1px_4px_rgba(26,28,28,0.02)] placeholder:text-[#5f5e5e] relative z-20"
                 placeholder="Search for cycle, books, mattress..."
               />
+              
+              {/* Suggestions Dropdown */}
+              {showSuggestions && searchQuery.trim() && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#E2E2E2] rounded-xl shadow-lg overflow-hidden z-50">
+                  {isSearching ? (
+                    <div className="p-4 text-center text-sm text-[#5f5e5e]">Searching...</div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="py-2">
+                      {searchResults.map((result) => (
+                        <div 
+                          key={result.id} 
+                          className="px-4 py-3 hover:bg-[#F9F9F9] cursor-pointer flex items-center gap-3 transition-colors border-b border-[#F0F0F0] last:border-b-0"
+                          onClick={() => {
+                            setSearchQuery(result.title);
+                            setSubmittedQuery(result.title);
+                            setShowSuggestions(false);
+                          }}
+                        >
+                          <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-[#EEEEEE]">
+                            <img src={result.image} alt={result.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-bold text-[#1A1C1C] truncate">{result.title}</h4>
+                            <p className="text-xs text-[#5f5e5e] truncate">{result.category} • ₹{result.price}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div 
+                        className="px-4 py-2 bg-[#F9F9F9] text-center text-sm font-bold text-[#006E17] hover:bg-[#EEEEEE] cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSubmittedQuery(searchQuery);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        See all results for "{searchQuery}"
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-sm text-[#5f5e5e]">
+                      No results found for "{searchQuery}"
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
