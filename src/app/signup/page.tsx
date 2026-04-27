@@ -116,7 +116,7 @@ export default function SignupPage() {
       <header className="sticky top-0 z-40 bg-[#F9F9F9]/80 backdrop-blur-[20px] border-b border-[#E2E2E2]">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="text-2xl font-bold tracking-tight">
-            Hostel<span className="text-[#fc5e03]">OLX</span>
+            Hostel<span className="text-[#BB020C]">OLX</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link

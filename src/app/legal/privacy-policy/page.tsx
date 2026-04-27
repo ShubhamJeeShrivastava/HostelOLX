@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
           <Link href="/" className="flex items-center gap-2 text-[#5f5e5e] hover:text-[#1A1C1C] transition-colors font-medium text-sm">
             <ArrowLeft size={18} /> Back to Home
           </Link>
-          <h1 className="text-xl font-bold text-[#006E17] tracking-tight">HostelOLX</h1>
+          <h1 className="text-xl font-bold tracking-tight">Hostel<span className="text-[#BB020C]">OLX</span></h1>
         </div>
       </header>
 
