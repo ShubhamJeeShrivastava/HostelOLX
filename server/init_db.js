@@ -45,6 +45,10 @@ const initDb = async () => {
         college_id INTEGER REFERENCES colleges(id) ON DELETE SET NULL,
         hostel_id INTEGER REFERENCES hostels(id) ON DELETE SET NULL,
         profile_photo TEXT,
+        trust_score NUMERIC DEFAULT 0,
+        deals_count INTEGER DEFAULT 0,
+        verified_at TIMESTAMP,
+        response_time_mins INTEGER DEFAULT 120,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -61,6 +65,10 @@ const initDb = async () => {
         category VARCHAR(100),
         type VARCHAR(50) NOT NULL,
         status VARCHAR(20) DEFAULT 'Available',
+        is_negotiable BOOLEAN DEFAULT false,
+        pickup_zone VARCHAR(255),
+        expires_at TIMESTAMP,
+        meta JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -82,56 +90,30 @@ const initDb = async () => {
     // Seed Data
     console.log('Seeding mock data...');
 
-    // 1. Colleges
     const insertCollegeQuery = `INSERT INTO colleges (domain, name, city) VALUES ($1, $2, $3) RETURNING id;`;
-    
     const collegeIitbRes = await pool.query(insertCollegeQuery, ['iitb.ac.in', 'IIT Bombay', 'Mumbai']);
     const collegeIitbId = collegeIitbRes.rows[0].id;
     
-    const collegeIiitnRes = await pool.query(insertCollegeQuery, ['iiitn.ac.in', 'IIIT Nagpur', 'Nagpur']);
-    const collegeIiitnId = collegeIiitnRes.rows[0].id;
-
-    const collegeBitsRes = await pool.query(insertCollegeQuery, ['bits-pilani.ac.in', 'BITS Pilani', 'Pilani']);
-    const collegeBitsId = collegeBitsRes.rows[0].id;
-
-    // 2. Hostels
     const hostelARes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel A') RETURNING id;`, [collegeIitbId]);
     const hostelBRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel B') RETURNING id;`, [collegeIitbId]);
-    const hostelCRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel C') RETURNING id;`, [collegeIitbId]);
-    const hostelDRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel D') RETURNING id;`, [collegeIitbId]);
-
     const haId = hostelARes.rows[0].id;
     const hbId = hostelBRes.rows[0].id;
-    const hcId = hostelCRes.rows[0].id;
-    const hdId = hostelDRes.rows[0].id;
 
-    // 3. Users
-    const user1Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Alice', 'alice@iitb.ac.in', '4th', $1, $2) RETURNING id;`, [collegeIitbId, haId]);
-    const user2Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Bob', 'bob@iitb.ac.in', '2nd', $1, $2) RETURNING id;`, [collegeIitbId, hbId]);
-    const user3Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Charlie', 'charlie@iitb.ac.in', '1st', $1, $2) RETURNING id;`, [collegeIitbId, hcId]);
-    const user4Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id) VALUES ('Diana', 'diana@iitb.ac.in', '3rd', $1, $2) RETURNING id;`, [collegeIitbId, hdId]);
+    // Users
+    const u1Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id, trust_score, deals_count, verified_at, response_time_mins) VALUES ('Alice', 'alice@iitb.ac.in', '4th', $1, $2, 4.9, 12, NOW(), 30) RETURNING id;`, [collegeIitbId, haId]);
+    const u2Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id, trust_score, deals_count, verified_at, response_time_mins) VALUES ('Rahul K.', 'rahul@iitb.ac.in', '3rd', $1, $2, 4.8, 7, NOW(), 120) RETURNING id;`, [collegeIitbId, hbId]);
+    const u1 = u1Res.rows[0].id;
+    const u2 = u2Res.rows[0].id;
 
-    const u1 = user1Res.rows[0].id; // Hostel A
-    const u2 = user2Res.rows[0].id; // Hostel B
-    const u3 = user3Res.rows[0].id; // Hostel C
-    const u4 = user4Res.rows[0].id; // Hostel D
-
-    // 4. Items (Matching previous frontend data exactly, with shifted created_at dates to simulate "postedAt")
+    // Items
     const insertItemQuery = `
-      INSERT INTO items (seller_id, title, price, condition, image, category, type, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - $8::INTERVAL)
+      INSERT INTO items (seller_id, title, price, condition, image, category, type, is_negotiable, pickup_zone, expires_at, meta, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW() + INTERVAL '30 days', $10, NOW() - $11::INTERVAL)
     `;
 
-    // format: [seller_id, title, price, condition, image, category, type, interval_str]
     const items = [
-      [u1, 'Engineering Physics Textbook', 250, 'Good', 'https://picsum.photos/seed/book1/400/400', 'Books & Notes', 'Sell', '2 hours'],
-      [u2, 'Electric Kettle - 1.5L', 600, 'Like New', 'https://picsum.photos/seed/kettle/400/400', 'Furniture & Appliances', 'Sell', '5 hours'],
-      [u1, 'Study Table Lamp', 150, 'Fair', 'https://picsum.photos/seed/lamp/400/400', 'Room Essentials', 'Sell', '1 day'],
-      [u3, 'Bicycle for Semester', 500, 'Good', 'https://picsum.photos/seed/bike/400/400', 'Cycles & Transport', 'Rent', '3 hours'],
-      [u2, 'Scientific Calculator (FX-991EX)', 800, 'Like New', 'https://picsum.photos/seed/calc/400/400', 'Stationery', 'Sell', '10 minutes'],
-      [u1, 'Lab Coat - Size L', 200, 'Good', 'https://picsum.photos/seed/coat/400/400', 'Clothing & Gear', 'Sell', '6 hours'],
-      [u4, 'Dumbbells Set (5kg x 2)', 400, 'Good', 'https://picsum.photos/seed/gym/400/400', 'Other', 'Sell', '12 hours'],
-      [u2, 'Data Structures Notes (Handwritten)', 0, 'Good', 'https://picsum.photos/seed/notes/400/400', 'Books & Notes', 'Lend', '1 hour']
+      [u1, 'Engineering Physics Textbook', 250, 'Good', 'https://picsum.photos/seed/book1/400/400', 'Books & Notes', 'Sell', false, 'Hostel A Lobby', JSON.stringify({ brand: null, model: null, age: '1 year' }), '2 hours'],
+      [u2, 'Scientific Calculator (FX-991EX)', 800, 'Like New', 'https://picsum.photos/seed/calc/400/400', 'Electronics', 'Sell', true, 'Hostel B Common Area', JSON.stringify({ brand: 'Casio', model: 'FX-991EX Classwiz', age: '~14 months', includes: 'Original box, case, manual', mrp: '₹1,395', description: 'Selling my Casio FX-991EX — used only for 2 sems. Works perfectly, all functions intact including QR code feature. Comes with original box and protective case. Upgrading to a graphing calculator, so this needs a new home. Ideal for Maths, Physics or any engg branch. Can demonstrate before purchase.' }), '10 days']
     ];
 
     for (const item of items) {

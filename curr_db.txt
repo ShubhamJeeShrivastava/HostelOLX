@@ -1,0 +1,30 @@
+# HostelOLX Core Entities (MVP)
+
+Table: users
+- id (SERIAL PK)
+- name (VARCHAR)
+- email (VARCHAR)
+- year_of_study (VARCHAR)
+- college_id (INTEGER)
+- hostel_id (INTEGER)
+- profile_photo (TEXT)
+- trust_score (NUMERIC, default 0)
+- deals_count (INTEGER, default 0)
+- verified_at (TIMESTAMP)
+- response_time_mins (INTEGER)
+- created_at (TIMESTAMP)
+
+Table: listings
+- id (SERIAL PK)
+- user_id (INTEGER, FK to users.id)
+- listing_type (VARCHAR) -- sell/rent/lend/want
+- category_id (INTEGER)
+- title (VARCHAR)
+- condition (VARCHAR)
+- price (INTEGER)
+- is_negotiable (BOOLEAN)
+- pickup_zone (VARCHAR)
+- expires_at (TIMESTAMP)
+- meta (JSONB) -- For category-specific fields (brand, model, age, frame size, etc.)
+- created_at (TIMESTAMP)
+- status (VARCHAR) -- Available, Sold, etc.

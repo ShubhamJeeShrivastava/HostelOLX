@@ -320,7 +320,7 @@ function ItemsContent() {
                     </div>
                   </div>
 
-                  <button className="w-full py-2.5 bg-[#F9F9F9] hover:bg-[#006E17] hover:text-white text-[#1A1C1C] font-bold text-sm rounded-xl transition-all active:scale-95">
+                  <button onClick={() => router.push(`/items/${product.id}`)} className="w-full py-2.5 bg-[#F9F9F9] hover:bg-[#006E17] hover:text-white text-[#1A1C1C] font-bold text-sm rounded-xl transition-all active:scale-95">
                     View Details
                   </button>
                 </div>
