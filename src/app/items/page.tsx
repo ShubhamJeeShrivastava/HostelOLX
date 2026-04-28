@@ -217,34 +217,39 @@ function ItemsContent() {
         </div>
 
         {/* Filters/Categories List */}
-        <div className="max-w-7xl mx-auto px-4 mt-6">
-          <div className="flex items-center gap-2 pb-2 overflow-x-auto no-scrollbar">
+        <div className="max-w-7xl mx-auto px-4 mt-8">
+          <div className="flex items-center gap-3 pb-4 overflow-x-auto no-scrollbar">
             {CATEGORIES.map((category) => {
               const Icon = CATEGORY_ICON_COMPONENTS[category] ?? MoreHorizontal;
+              const isSelected = selectedCategory === category;
               return (
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
                   className={[
-                    'group shrink-0 rounded-2xl border shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2',
-                    'px-3 h-10',
-                    selectedCategory === category
-                      ? 'bg-[#006E17]/10 border-[#006E17]/25 text-[#006E17]'
-                      : 'bg-white border-[#EEEEEE] text-[#1A1C1C] hover:shadow-md hover:border-[#006E17]/20',
+                    'group shrink-0 rounded-[20px] border transition-all active:scale-95 flex flex-col items-center justify-center text-center p-3 w-[116px] h-[116px]',
+                    isSelected
+                      ? 'bg-white border-[#006E17] shadow-sm'
+                      : 'bg-white border-[#EEEEEE] hover:border-[#CCCCCC] hover:shadow-sm',
                   ].join(' ')}
                 >
                   <div
                     className={[
-                      'w-7 h-7 flex items-center justify-center rounded-xl transition-colors',
-                      selectedCategory === category
+                      'w-12 h-12 flex items-center justify-center rounded-[16px] mb-3 transition-colors',
+                      isSelected
                         ? 'bg-[#006E17] text-white'
-                        : 'bg-[#006E17]/5 text-[#006E17] group-hover:bg-[#006E17] group-hover:text-white',
+                        : 'bg-[#F2F9F4] text-[#006E17] group-hover:bg-[#E8F5EB]',
                     ].join(' ')}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-extrabold tracking-tight">
-                    {CATEGORY_SHORT_LABEL[category]}
+                  <span 
+                    className={[
+                      'text-[11px] leading-tight font-bold tracking-tight px-1',
+                      isSelected ? 'text-[#1A1C1C]' : 'text-[#5f5e5e] group-hover:text-[#1A1C1C]'
+                    ].join(' ')}
+                  >
+                    {category}
                   </span>
                 </button>
               );
