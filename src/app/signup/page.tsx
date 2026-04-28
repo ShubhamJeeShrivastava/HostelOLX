@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Lock, Mail, User } from 'lucide-react';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -43,6 +44,7 @@ export default function SignupPage() {
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const router = useRouter();
 
   const emailOk = useMemo(() => (email.length === 0 ? true : isValidEmail(email)), [email]);
   const passwordMatchOk = useMemo(() => {
@@ -101,11 +103,31 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     try {
-      // Placeholder until backend signup exists.
-      await new Promise((r) => setTimeout(r, 900));
-      setSuccess(`Account created for ${email.trim()}. (Backend signup not wired yet.)`);
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: fullName.trim(), email: email.trim(), password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Registration failed.');
+        return;
+      }
+      setSuccess('Account created successfully! Logging in...');
+      const signRes = await signIn('credentials', {
+        email: email.trim(),
+        password,
+        redirect: false,
+      });
+
+      if (!signRes?.error) {
+        router.push('/');
+        router.refresh();
+      } else {
+        setError('Login failed after signup.');
+      }
     } catch {
-      setError('Sign up failed. Please try again.');
+      setError('Check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }

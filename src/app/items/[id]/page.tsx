@@ -10,10 +10,12 @@ import {
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import CampusDropdown from '@/components/CampusDropdown';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function ItemDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const id = params?.id;
   
   const [item, setItem] = useState<any>(null);
@@ -67,7 +69,7 @@ export default function ItemDetailsPage() {
   }
 
   // Parse meta safely
-  let meta = {};
+  let meta: any = {};
   if (item.meta) {
     try {
       meta = typeof item.meta === 'string' ? JSON.parse(item.meta) : item.meta;
@@ -106,9 +108,15 @@ export default function ItemDetailsPage() {
             <button className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform">
               Sell
             </button>
-            <Link href="/login" className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
-              Login
-            </Link>
+            {session?.user ? (
+              <button onClick={() => signOut()} className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
+                Logout
+              </button>
+            ) : (
+              <Link href="/login" className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
+                Login
+              </Link>
+            )}
             <button className="p-2 text-[#1A1C1C] hover:bg-[#EEEEEE] rounded-xl transition-colors relative">
               <ShoppingCart size={22} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-[#BB020C] rounded-full"></span>
@@ -218,7 +226,7 @@ export default function ItemDetailsPage() {
                   }).map(([key, value], idx) => (
                     <div key={idx} className="flex flex-col sm:flex-row sm:items-center py-4 px-6 hover:bg-[#F9F9F9] transition-colors">
                       <div className="sm:w-1/3 text-sm font-semibold text-[#5f5e5e]">{key}</div>
-                      <div className="sm:w-2/3 text-sm font-bold text-[#1A1C1C] mt-1 sm:mt-0">{value}</div>
+                      <div className="sm:w-2/3 text-sm font-bold text-[#1A1C1C] mt-1 sm:mt-0">{value as React.ReactNode}</div>
                     </div>
                   ))}
                 </div>

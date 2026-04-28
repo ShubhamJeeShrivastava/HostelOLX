@@ -8,6 +8,7 @@ import {
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import CampusDropdown from '@/components/CampusDropdown';
+import { useSession, signOut } from 'next-auth/react';
 
 const CATEGORIES = [
   'All',
@@ -66,6 +67,7 @@ function ItemsContent() {
   const [searchResults, setSearchResults] = useState<typeof items>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
 
   // Sync Input with URL Query Param
   useEffect(() => {
@@ -74,23 +76,44 @@ function ItemsContent() {
 
   // Main Page Fetching based on URL parameters
   useEffect(() => {
-    const url = initialSearch
-      ? `http://localhost:5000/api/items?search=${encodeURIComponent(initialSearch)}`
-      : 'http://localhost:5000/api/items';
+    if (status === 'loading') return;
 
-    setIsLoading(true);
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        setItems(data);
-        setIsLoading(false);
-      })
-      .catch(err => {
+    const fetchItems = async () => {
+      setIsLoading(true);
+      try {
+        let url = initialSearch
+          ? `http://localhost:5000/api/items?search=${encodeURIComponent(initialSearch)}`
+          : 'http://localhost:5000/api/items';
+          
+        const headers: Record<string, string> = {};
+
+        if (session?.user && (session.user as any).backendToken) {
+          headers['Authorization'] = `Bearer ${(session.user as any).backendToken}`;
+        } else {
+          const colRes = await fetch('http://localhost:5000/api/colleges');
+          const cols = await colRes.json();
+          if (Array.isArray(cols) && cols.length > 0) {
+            url += `${initialSearch ? '&' : '?'}college_id=${cols[0].id}`;
+          }
+        }
+
+        const res = await fetch(url, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          setItems(Array.isArray(data) ? data : []);
+        } else {
+          setItems([]);
+        }
+      } catch (err) {
         console.warn('Error fetching items', err);
-        setIsLoading(false);
         setItems([]);
-      });
-  }, [initialSearch]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, [initialSearch, session, status]);
 
   // Dropdown Auto-Complete Debounce Effect
   useEffect(() => {
@@ -98,18 +121,38 @@ function ItemsContent() {
       setSearchResults([]);
       return;
     }
-    const delayDebounceFn = setTimeout(() => {
+    const delayDebounceFn = setTimeout(async () => {
       setIsSearching(true);
-      fetch(`http://localhost:5000/api/items?search=${encodeURIComponent(searchQuery)}`)
-        .then(res => res.json())
-        .then(data => {
-          setSearchResults(data.slice(0, 5));
-          setIsSearching(false);
-        })
-        .catch(err => {
-          console.error(err);
-          setIsSearching(false);
-        });
+      try {
+        let url = `http://localhost:5000/api/items?search=${encodeURIComponent(searchQuery)}`;
+        const headers: Record<string, string> = {};
+        
+        if (session?.user && (session.user as any).backendToken) {
+          headers['Authorization'] = `Bearer ${(session.user as any).backendToken}`;
+        } else {
+          const colRes = await fetch('http://localhost:5000/api/colleges');
+          const cols = await colRes.json();
+          if (Array.isArray(cols) && cols.length > 0) {
+            url += `&college_id=${cols[0].id}`;
+          }
+        }
+
+        const res = await fetch(url, { headers });
+        if (res.ok) {
+           const data = await res.json();
+           if (Array.isArray(data)) {
+             setSearchResults(data.slice(0, 5));
+           } else {
+             setSearchResults([]);
+           }
+        } else {
+           setSearchResults([]);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearching(false);
+      }
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
@@ -206,9 +249,15 @@ function ItemsContent() {
             <button className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform">
               Sell
             </button>
-            <Link href="/login" className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
-              Login
-            </Link>
+            {session?.user ? (
+              <button onClick={() => signOut()} className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
+                Logout
+              </button>
+            ) : (
+              <Link href="/login" className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
+                Login
+              </Link>
+            )}
             <button className="p-2 text-[#1A1C1C] hover:bg-[#EEEEEE] rounded-xl transition-colors relative">
               <ShoppingCart size={22} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-[#BB020C] rounded-full"></span>

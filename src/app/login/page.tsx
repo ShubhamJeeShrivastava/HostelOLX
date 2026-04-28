@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -42,6 +43,7 @@ export default function LoginPage() {
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const router = useRouter();
 
   const emailOk = useMemo(() => (email.length === 0 ? true : isValidEmail(email)), [email]);
   const canSubmit = useMemo(() => {
@@ -85,9 +87,19 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     try {
-      // Placeholder until backend auth exists.
-      await new Promise((r) => setTimeout(r, 800));
-      setSuccess(`Signed in as ${email.trim()} ${rememberMe ? '(remembered)' : ''}`.trim());
+      const res = await signIn('credentials', {
+        email: email.trim(),
+        password,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        setError(res.error === 'CredentialsSignin' ? 'Invalid credentials.' : res.error);
+      } else {
+        setSuccess('Signed in successfully!');
+        router.push('/');
+        router.refresh();
+      }
     } catch {
       setError('Login failed. Please try again.');
     } finally {

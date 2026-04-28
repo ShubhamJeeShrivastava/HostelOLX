@@ -2,15 +2,17 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, ChevronDown, Search } from 'lucide-react';
-
-
+import { useSession } from 'next-auth/react';
 
 export default function CampusDropdown() {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [colleges, setColleges] = useState<{ id: string; name: string }[]>([]);
   const [selectedCampus, setSelectedCampus] = useState('Loading...');
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const isAuthenticated = !!session?.user;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -27,18 +29,35 @@ export default function CampusDropdown() {
     fetch('http://localhost:5000/api/colleges')
       .then(res => res.json())
       .then(data => {
-        setColleges(data);
-        if (data && data.length > 0) {
-          setSelectedCampus(data[0].name);
+        if (Array.isArray(data)) {
+          setColleges(data);
+          if (data.length > 0) {
+            if (session?.user && (session.user as any).college_id) {
+               const userCollegeId = String((session.user as any).college_id);
+               const matched = data.find((c: any) => String(c.id) === userCollegeId);
+               if (matched) {
+                 setSelectedCampus(matched.name);
+               } else {
+                 setSelectedCampus(data[0].name);
+               }
+            } else {
+              // Unauthenticated view sets default or last selected (placeholder)
+              setSelectedCampus(data[0].name);
+            }
+          } else {
+            setSelectedCampus('No campuses available');
+          }
         } else {
-          setSelectedCampus('No campuses available');
+          setColleges([]);
+          setSelectedCampus('Campus Unavailable');
         }
       })
       .catch(err => {
         console.error('Failed to fetch colleges', err);
+        setColleges([]);
         setSelectedCampus('Campus Unavailable');
       });
-  }, []);
+  }, [session]);
 
   const filteredColleges = colleges.filter((college) =>
     college.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -47,19 +66,21 @@ export default function CampusDropdown() {
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className="flex items-center gap-2 bg-[#E8E8E8] px-3 py-1.5 rounded-xl cursor-pointer hover:bg-[#E2E2E2] transition-colors"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-2 bg-[#E8E8E8] px-3 py-1.5 rounded-xl transition-colors ${
+          isAuthenticated ? 'cursor-default opacity-90' : 'cursor-pointer hover:bg-[#E2E2E2]'
+        }`}
+        onClick={() => !isAuthenticated && setIsOpen(!isOpen)}
       >
         <MapPin size={18} className="text-[#006E17]" />
         <div className="flex flex-col">
           <span className="text-[10px] font-bold uppercase text-[#5f5e5e] leading-none">Your Campus</span>
           <span className="text-sm font-semibold flex items-center gap-1 select-none">
-            {selectedCampus} <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            {selectedCampus} {!isAuthenticated && <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
           </span>
         </div>
       </div>
 
-      {isOpen && (
+      {isOpen && !isAuthenticated && (
         <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-[0_8px_30px_rgba(26,28,28,0.12)] border border-[#EEEEEE] overflow-hidden z-50">
           {/* Search Input */}
           <div className="p-3 border-b border-[#EEEEEE] bg-[#F9F9F9]">
