@@ -105,13 +105,24 @@ export default function ItemDetailsPage() {
           </div>
 
           <div className="flex items-center gap-4 border-l border-[#E2E2E2] pl-4">
-            <button className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform">
-              Sell
-            </button>
             {session?.user ? (
-              <button onClick={() => signOut()} className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
-                Logout
-              </button>
+               <Link href="/sell" className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform text-center inline-block">
+                 Sell
+               </Link>
+            ) : (
+               <Link href="/login?callbackUrl=/sell" className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform text-center inline-block">
+                 Sell
+               </Link>
+            )}
+            {session?.user ? (
+              <>
+                <Link href="/profile" className="text-[#1A1C1C] px-3 py-2 rounded-xl font-bold text-sm hover:bg-[#EEEEEE] transition-colors">
+                  Dashboard
+                </Link>
+                <button onClick={() => signOut()} className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
+                  Logout
+                </button>
+              </>
             ) : (
               <Link href="/login" className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
                 Login

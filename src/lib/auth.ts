@@ -49,20 +49,28 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       if (account?.provider === 'google') {
         try {
-          const res = await fetch('http://127.0.0.1:5000/api/colleges');
-          const domains = await res.json();
-          let matched = false;
-          let matchedId = null;
-          for (const d of domains) {
-            if (new RegExp(d.regex_pattern).test(user.email || '')) {
-              matched = true;
-              matchedId = d.id;
-              break;
-            }
+          const res = await fetch('http://127.0.0.1:5000/api/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: user.email,
+              name: user.name,
+              profile_photo: user.image
+            })
+          });
+
+          if (!res.ok) {
+            return '/login?error=InvalidDomain';
           }
-          if (!matched) return '/login?error=InvalidDomain';
+
+          const data = await res.json();
+          // Merge custom postgres response into NextAuth user object explicitly
+          Object.assign(user, { 
+            id: data.user.id.toString(),
+            college_id: data.user.college_id,
+            token: data.token
+          });
           
-          Object.assign(user, { college_id: matchedId });
           return true;
         } catch (e) {
            console.error('Google provider error:', e);

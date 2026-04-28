@@ -246,13 +246,24 @@ function ItemsContent() {
           </div>
 
           <div className="flex items-center gap-4 border-l border-[#E2E2E2] pl-4">
-            <button className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform">
-              Sell
-            </button>
             {session?.user ? (
-              <button onClick={() => signOut()} className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
-                Logout
-              </button>
+               <Link href="/sell" className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform text-center inline-block">
+                 Sell
+               </Link>
+            ) : (
+               <Link href="/login?callbackUrl=/sell" className="bg-[#BB020C] text-white px-5 py-2 rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(187,2,12,0.2)] hover:-translate-y-0.5 transition-transform text-center inline-block">
+                 Sell
+               </Link>
+            )}
+            {session?.user ? (
+              <>
+                <Link href="/profile" className="text-[#1A1C1C] px-3 py-2 rounded-xl font-bold text-sm hover:bg-[#EEEEEE] transition-colors">
+                  Dashboard
+                </Link>
+                <button onClick={() => signOut()} className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
+                  Logout
+                </button>
+              </>
             ) : (
               <Link href="/login" className="bg-[#EEEEEE] text-[#1A1C1C] px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#E2E2E2] transition-colors">
                 Login
@@ -328,9 +339,10 @@ function ItemsContent() {
         ) : visibleItems.length > 0 ? (
           <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {visibleItems.map((product) => (
-              <div
+              <Link
+                href={`/items/${product.id}`}
                 key={product.id}
-                className="group bg-white border border-[#EEEEEE] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                className="group bg-white border border-[#EEEEEE] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block"
               >
                 <div className="relative aspect-square overflow-hidden bg-[#F9F9F9]">
                   <img
@@ -374,11 +386,11 @@ function ItemsContent() {
                     </div>
                   </div>
 
-                  <button onClick={() => router.push(`/items/${product.id}`)} className="w-full py-2.5 bg-[#F9F9F9] hover:bg-[#006E17] hover:text-white text-[#1A1C1C] font-bold text-sm rounded-xl transition-all active:scale-95">
+                  <div className="w-full py-2.5 bg-[#F9F9F9] group-hover:bg-[#006E17] group-hover:text-white text-[#1A1C1C] font-bold text-sm rounded-xl transition-all flex items-center justify-center">
                     View Details
-                  </button>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
