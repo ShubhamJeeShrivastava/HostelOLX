@@ -85,25 +85,26 @@ const initDb = async () => {
       );
     `);
 
-    console.log('Schema created successfully.');
-
-    // Seed Data
-    console.log('Seeding mock data...');
-
     const insertCollegeQuery = `INSERT INTO colleges (domain, name, city) VALUES ($1, $2, $3) RETURNING id;`;
     const collegeIitbRes = await pool.query(insertCollegeQuery, ['iitb.ac.in', 'IIT Bombay', 'Mumbai']);
     const collegeIitbId = collegeIitbRes.rows[0].id;
     
     const hostelARes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel A') RETURNING id;`, [collegeIitbId]);
     const hostelBRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel B') RETURNING id;`, [collegeIitbId]);
+    const hostelCRes = await pool.query(`INSERT INTO hostels (college_id, name) VALUES ($1, 'Hostel C') RETURNING id;`, [collegeIitbId]);
+    
     const haId = hostelARes.rows[0].id;
     const hbId = hostelBRes.rows[0].id;
+    const hcId = hostelCRes.rows[0].id;
 
     // Users
     const u1Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id, trust_score, deals_count, verified_at, response_time_mins) VALUES ('Alice', 'alice@iitb.ac.in', '4th', $1, $2, 4.9, 12, NOW(), 30) RETURNING id;`, [collegeIitbId, haId]);
     const u2Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id, trust_score, deals_count, verified_at, response_time_mins) VALUES ('Rahul K.', 'rahul@iitb.ac.in', '3rd', $1, $2, 4.8, 7, NOW(), 120) RETURNING id;`, [collegeIitbId, hbId]);
+    const u3Res = await pool.query(`INSERT INTO users (name, email, year_of_study, college_id, hostel_id, trust_score, deals_count, verified_at, response_time_mins) VALUES ('Siddharth', 'sid@iitb.ac.in', '2nd', $1, $2, 4.5, 4, NOW(), 45) RETURNING id;`, [collegeIitbId, hcId]);
+    
     const u1 = u1Res.rows[0].id;
     const u2 = u2Res.rows[0].id;
+    const u3 = u3Res.rows[0].id;
 
     // Items
     const insertItemQuery = `
@@ -112,15 +113,21 @@ const initDb = async () => {
     `;
 
     const items = [
-      [u1, 'Engineering Physics Textbook', 250, 'Good', 'https://picsum.photos/seed/book1/400/400', 'Books & Notes', 'Sell', false, 'Hostel A Lobby', JSON.stringify({ brand: null, model: null, age: '1 year' }), '2 hours'],
-      [u2, 'Scientific Calculator (FX-991EX)', 800, 'Like New', 'https://picsum.photos/seed/calc/400/400', 'Electronics', 'Sell', true, 'Hostel B Common Area', JSON.stringify({ brand: 'Casio', model: 'FX-991EX Classwiz', age: '~14 months', includes: 'Original box, case, manual', mrp: '₹1,395', description: 'Selling my Casio FX-991EX — used only for 2 sems. Works perfectly, all functions intact including QR code feature. Comes with original box and protective case. Upgrading to a graphing calculator, so this needs a new home. Ideal for Maths, Physics or any engg branch. Can demonstrate before purchase.' }), '10 days']
+      [u1, 'Engineering Physics Textbook', 250, 'Good', '/images/textbook_1777324606549.png', 'Books & Notes', 'Sell', false, 'Hostel A Lobby', JSON.stringify({ age: '2 years', description: 'Used but in great condition. No torn pages.' }), '2 hours'],
+      [u2, 'Scientific Calculator (FX-991EX)', 800, 'Like New', '/images/calculator_1777324622693.png', 'Electronics', 'Sell', true, 'Hostel B Common Area', JSON.stringify({ brand: 'Casio', model: 'FX-991EX Classwiz', age: '~14 months', includes: 'Original box, case, manual', mrp: '₹1,395', description: 'Selling my Casio FX-991EX — used only for 2 sems. Works perfectly. Can demonstrate before purchase.' }), '10 days'],
+      [u3, 'Electric Kettle - 1.5L', 500, 'Like New', '/images/kettle_1777324636147.png', 'Furniture & Appliances', 'Sell', true, 'Hostel C Room 101', JSON.stringify({ brand: 'Bosch', condition: 'Very clean, used rarely', description: 'Perfect for quick maggi or tea in your room. Boils super fast.' }), '5 hours'],
+      [u1, 'Study Table Lamp', 250, 'Good', '/images/lamp_1777324650978.png', 'Room Essentials', 'Sell', false, 'Hostel A Library', JSON.stringify({ brand: 'Generic', description: 'Bright yellow desk lamp perfect for late night study sessions.' }), '1 day'],
+      [u2, 'Bicycle for Campus Move', 200, 'Fair', '/images/bicycle_1777324665736.png', 'Cycles & Transport', 'Rent', false, 'North Hall Gate', JSON.stringify({ description: 'Renting out my cycle for the semester. Sturdy Trek bike.' }), '3 hours'],
+      [u3, 'Lab Coat - Size M/L', 150, 'Like New', '/images/lab_coat_1777324686973.png', 'Clothing & Gear', 'Sell', false, 'Hostel C Corridor', JSON.stringify({ description: 'Only worn twice for chemistry lab. Perfectly washed.' }), '6 hours'],
+      [u1, 'Dumbbells Set (5kg x 2)', 600, 'Good', '/images/dumbbells_1777324786705.png', 'Clothing & Gear', 'Sell', true, 'Hostel A Gym', JSON.stringify({ weight: '5kg each', description: 'Hardly used dumbbells for room workouts.' }), '12 hours'],
+      [u2, 'Drafting Board (A3)', 300, 'Good', '/images/drafting_board_1777325007785.png', 'Stationery', 'Sell', true, 'Hostel B Common Area', JSON.stringify({ size: 'A3', description: 'Wooden drafting board ideal for engineering graphics courses.' }), '2 days']
     ];
 
     for (const item of items) {
       await pool.query(insertItemQuery, item);
     }
 
-    console.log('Database fully seeded with connected associations.');
+    console.log('Database fully seeded with real images.');
 
   } catch (error) {
     console.error('Failed to execute database rework:', error);
